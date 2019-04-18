@@ -5,10 +5,13 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +19,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import java.io.File;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -96,6 +100,7 @@ public class MainActivity extends AppCompatActivity
 			request.setVisibleInDownloadsUi(true);
 			// request.setDestinationUri(Uri.parse("file://apks/inforeader.apk"));
 			request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "inforeader.apk");
+
 			Log.d(TAG, "Environment.DIRECTORY_DOWNLOADS: " + Environment.DIRECTORY_DOWNLOADS);
 
 			downloadmanager.enqueue(request);
@@ -108,11 +113,38 @@ public class MainActivity extends AppCompatActivity
 	{
 		Log.d(TAG, "instalar_apk: iniciando.");
 
-		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/inforeader.apk")), "application/vnd.android.package-archive");
+		String storage= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/inforeader.apk";
+		File file= new File(storage);
+		Uri uri;
+
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+		{
+			Log.d(TAG, "authority: " + this.getApplicationContext().getPackageName());
+			Log.d(TAG, "file: " + file + "; existe: " + file.exists());
+
+			uri= FileProvider.getUriForFile(super.getApplicationContext(), "cl.infositio.infoprueba001.fileprovider", file);
+			// uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
+			//
+			// List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			// for (ResolveInfo resolveInfo : resInfoList) {
+			// String packageName = resolveInfo.activityInfo.packageName;
+			// grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			// }
+
+		}
+		else
+		{
+			uri= Uri.fromFile(file);
+		}
+
+		Intent intent= new Intent(Intent.ACTION_VIEW);
+		intent.setDataAndType(uri, "application/vnd.android.package-archive");
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(intent);
+		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		super.getApplicationContext().startActivity(intent);
 	}
+
+
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
