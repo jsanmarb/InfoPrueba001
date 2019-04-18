@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
@@ -89,7 +90,19 @@ public class MainActivity extends AppCompatActivity
 		}
 		else
 		{
+			// eliminamos el archivo anterior
+			try
+			{
+				String storage= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/inforeader.apk";
+				File file= new File(storage);
+				if(file.exists()) file.delete();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
 
+			// intentamos descarga en directorio publico
 			DownloadManager downloadmanager= (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 			Uri uri= Uri.parse("http://descargas.infositio.cl/inforeader/saesa/inforeader_enlac/InfoReader3_EnlaC_v_0_7_QA.apk");
 
@@ -117,25 +130,21 @@ public class MainActivity extends AppCompatActivity
 		File file= new File(storage);
 		Uri uri;
 
+		if(!file.exists())
+		{
+			Toast.makeText(super.getApplicationContext(), "¡Primero debes descargar el apk!", Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
 		{
 			Log.d(TAG, "authority: " + this.getApplicationContext().getPackageName());
 			Log.d(TAG, "file: " + file + "; existe: " + file.exists());
 
 			uri= FileProvider.getUriForFile(super.getApplicationContext(), "cl.infositio.infoprueba001.fileprovider", file);
-			// uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
-			//
-			// List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-			// for (ResolveInfo resolveInfo : resInfoList) {
-			// String packageName = resolveInfo.activityInfo.packageName;
-			// grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-			// }
-
 		}
 		else
-		{
 			uri= Uri.fromFile(file);
-		}
 
 		Intent intent= new Intent(Intent.ACTION_VIEW);
 		intent.setDataAndType(uri, "application/vnd.android.package-archive");
