@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity
 {
 	public static final String	TAG												= "infoprueba001";
@@ -78,6 +80,8 @@ public class MainActivity extends AppCompatActivity
 						MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 				}
 			}
+			else
+				this.descargar_archivo(1);
 		}
 		else
 		{
@@ -86,18 +90,29 @@ public class MainActivity extends AppCompatActivity
 			Uri uri= Uri.parse("http://descargas.infositio.cl/inforeader/saesa/inforeader_enlac/InfoReader3_EnlaC_v_0_7_QA.apk");
 
 			DownloadManager.Request request= new DownloadManager.Request(uri);
-			request.setTitle("My File");
-			request.setDescription("Downloading");
+			request.setTitle("InfoReader");
+			request.setDescription("Descargando");
 			request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-			request.setVisibleInDownloadsUi(false);
+			request.setVisibleInDownloadsUi(true);
 			// request.setDestinationUri(Uri.parse("file://apks/inforeader.apk"));
 			request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "inforeader.apk");
+			Log.d(TAG, "Environment.DIRECTORY_DOWNLOADS: " + Environment.DIRECTORY_DOWNLOADS);
 
 			downloadmanager.enqueue(request);
 		}
 	}
 
 
+
+	public void instalar_apk(View view)
+	{
+		Log.d(TAG, "instalar_apk: iniciando.");
+
+		Intent intent = new Intent(Intent.ACTION_VIEW);
+		intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/inforeader.apk")), "application/vnd.android.package-archive");
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
+	}
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
